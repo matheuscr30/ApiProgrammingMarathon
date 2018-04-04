@@ -1,0 +1,722 @@
+<script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function (event) {
+        // Para facilitar em novas maratonas
+
+        // Insira o nome da maratona igual ao inserido no previamente no banco de dados
+        var maratona = '18ª MARATONA DE PROGRAMAÇÃO';
+
+        // Insira o id da maratona igual ao inserido no previamente no banco de dados
+        var id_maratona = 4;
+
+        // Insira o numero a qual status a maratona se encontra:
+        // 1 para aguardando inscrições
+        // 2 para inscrições abertas
+        // 3 para inscrições encerradas
+        var statusMaratona = 2;
+
+        if (statusMaratona == 1) {
+            var aguardando = document.getElementById("aguardando");
+            aguardando.setAttribute("class", "show");
+            var aberta = document.getElementById("aberta");
+            aberta.setAttribute("class", "hidden");
+            var encerrada = document.getElementById("encerrada");
+            encerrada.setAttribute("class", "hidden");
+        }
+
+        if (statusMaratona == 3) {
+            var aguardando = document.getElementById("aguardando");
+            aguardando.setAttribute("class", "hidden");
+            var aberta = document.getElementById("aberta");
+            aberta.setAttribute("class", "hidden");
+            var encerrada = document.getElementById("encerrada");
+            encerrada.setAttribute("class", "show");
+
+            document.getElementById("cpfencerrada").onchange = function (e) {
+                var cpfAndMaratona = {'cpf': this.value, 'id_maratona': id_maratona};
+                var xmlhttp;
+                if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
+                    xmlhttp = new XMLHttpRequest();
+                } else { // code for IE6, IE5
+                    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+                }
+                xmlhttp.onreadystatechange = function () {
+                    if (xmlhttp.readyState == 4)
+                        if (xmlhttp.status == 200) {
+                            console.log(xmlhttp.responseText);
+                            var usuario = JSON.parse(xmlhttp.responseText);
+                            var status = document.getElementById("status-encerrada");
+                            if (typeof(usuario[0]) == 'object') {
+                                if (typeof(usuario[0].status) != 'undefined') {
+                                    var str = '<br>' + usuario[0].nome + '<br>' + usuario[0].email + '<br>Status: ' + usuario[0].status + '<br><br>';
+                                    if (usuario[0].status == 'AGUARDANDO PAGAMENTO') {
+                                        status.innerHTML = str + 'Para que sua participação seja confirmada, pague com antecedência.<br>Pague sua inscrição aqui pelo <a target="_blank" href="https://pagseguro.uol.com.br/checkout/v2/payment.html?code=98BBFFC80303F81EE4183FABB0301444">PagSeguro</a>';
+                                    }
+                                    if (usuario[0].status == 'PAGAMENTO CONFIRMADO' || usuario[0].status == 'PAGAMENTO ALGAR' || usuario[0].status == 'TESTE') {
+                                        status.innerHTML = str + 'Parábéns seu pagamento já foi confirmado.<br> Aguardamos você dia 06 de Maio às 8:00h na UNITRI';
+                                    }
+                                    if (usuario[0].status == 'LISTA DE ESPERA') {
+                                        status.innerHTML = str + 'Você ficou na <strong>Lista de Espera</strong>.<br>Por favor, aguarde a possibilidade de chamada.';
+                                    }
+                                } else {
+                                    status.innerHTML = "<br>Infelizmente você não se inscreveu, contamos com você na proxima edição.";
+                                }
+                            } else {
+                                status.innerHTML = "<br>Infelizmente você não se inscreveu, contamos com você na proxima edição.";
+                            }
+                            status.setAttribute("class", "show");
+                        }
+                }
+                xmlhttp.open("GET", "/portal/aplication/getMaratonista.php?cpfAndMaratona=" + JSON.stringify(cpfAndMaratona));
+                xmlhttp.setRequestHeader('Content-Type', 'application/json');
+                xmlhttp.send();
+            };
+        }
+
+        if (statusMaratona == 2) {
+            var aguardando = document.getElementById("aguardando");
+            aguardando.setAttribute("class", "hidden");
+            var aberta = document.getElementById("aberta");
+            aberta.setAttribute("class", "show");
+            var encerrada = document.getElementById("encerrada");
+            encerrada.setAttribute("class", "hidden");
+
+            var xmlhttp;
+            if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
+                xmlhttp = new XMLHttpRequest();
+            } else { // code for IE6, IE5
+                xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+            }
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == 4)
+                    if (xmlhttp.status == 200) {
+
+                        var instituicoes = JSON.parse(xmlhttp.responseText);
+                        var instituicao = document.getElementById("instituicao");
+                        var iOutra;
+                        for (var i = 0; i < instituicoes.length; i++) {
+                            if (instituicoes[i].nome != "OUTRA") {
+                                instituicao.innerHTML += "<option value=\"" + instituicoes[i].nome + "\">" + instituicoes[i].nome + "</option>";
+                            } else {
+                                iOutra = i;
+                            }
+                        }
+                        instituicao.innerHTML += "<option value=\"" + instituicoes[iOutra].nome + "\">" + instituicoes[iOutra].nome + "</option>";
+                    }
+            }
+
+            /* CHANGE
+            xmlhttp.open("GET", "/portal/aplication/getInstituicoes.php", false);
+            */
+            xmlhttp.open("GET", "/api/institutions", false);
+            xmlhttp.send();
+
+            document.getElementById("instituicao").onchange = function (e) {
+                var nome_instituicao = document.getElementById("instituicao").value;
+                if (nome_instituicao != "-1") {
+                    var curso = document.getElementById("curso");
+                    curso.innerHTML = "<option value=\"-1\">Selecione seu Curso</option>";
+                    var xmlhttp;
+                    if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
+                        xmlhttp = new XMLHttpRequest();
+                    } else { // code for IE6, IE5
+                        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+                    }
+                    xmlhttp.onreadystatechange = function () {
+                        if (xmlhttp.readyState == 4) {
+                            if (xmlhttp.status == 200) {
+                                var cursos = JSON.parse(xmlhttp.responseText);
+                                console.log(cursos);
+                                var iOutro;
+                                for (i = 0; i < cursos.length; i++) {
+                                    if (cursos[i].nome != "OUTRO") {
+                                        curso.innerHTML += "<option value=\"" + cursos[i].nome + "\">" + cursos[i].nome + "</option>";
+                                    } else {
+                                        iOutro = i;
+                                    }
+                                }
+                                curso.innerHTML += "<option value=\"" + cursos[iOutro].nome + "\">" + cursos[iOutro].nome + "</option>";
+                            }
+                        }
+                    }
+
+                    /* CHANGE
+                    xmlhttp.open("GET", "/portal/aplication/getCursos.php?nome_instituicao=" + nome_instituicao, false);
+                    */
+                    xmlhttp.open("GET", "/api/courses/" + nome_instituicao, false);
+                    xmlhttp.send();
+                }
+                e.preventDefault();
+            };
+
+            document.getElementById("submit").onclick = function (e) {
+                var alert = document.getElementById("alert");
+                alert.setAttribute("class", "alert hidden");
+                var cpf = document.getElementById("cpf").value;
+                var senha = document.getElementById("senha").value;
+                var resenha = document.getElementById("resenha").value;
+                var rg = document.getElementById("rg").value;
+                var email = document.getElementById("email").value;
+                var nome = document.getElementById("nome").value;
+                var data_nascimento = document.getElementById("data_nascimento").value;
+                var sexo = document.getElementById("sexo").value;
+                var instituicao = document.getElementById("instituicao").value;
+                var curso = document.getElementById("curso").value;
+                var periodo = document.getElementById("periodo").value;
+                var matriculado = document.getElementById("matriculado").value;
+                var tam_camiseta = document.getElementById("tam_camiseta").value;
+                if (cpf == "") {
+                    alert.innerHTML = "O campo CPF é Obrigatório!";
+                    e.preventDefault();
+                } else {
+                    if (!validar(document.getElementById("cpf"))) {
+                        alert.innerHTML = "CPF Invalido!";
+                        e.preventDefault();
+                    } else {
+                        if (senha == "") {
+                            alert.innerHTML = "O campo SENHA é Obrigatório!";
+                            e.preventDefault();
+                        } else {
+                            if (senha != resenha) {
+                                alert.innerHTML = "SENHA e REPITA a SENHA devem ser iguais!";
+                                e.preventDefault();
+                            } else {
+                                if (email == "") {
+                                    alert.innerHTML = "O campo EMAIL é Obrigatório!";
+                                    e.preventDefault();
+                                } else {
+                                    if (!validarEmail(email)) {
+                                        alert.innerHTML = "EMAIL Incorreto!";
+                                        e.preventDefault();
+                                    } else {
+                                        if (rg == "") {
+                                            alert.innerHTML = "O campo RG é Obrigatório!";
+                                            e.preventDefault();
+                                        } else {
+                                            if (nome == "") {
+                                                alert.innerHTML = "O campo NOME é Obrigatório!";
+                                                e.preventDefault();
+                                            } else {
+                                                if (data_nascimento == "") {
+                                                    alert.innerHTML = "O campo DATA_NASCIMENTO é Obrigatório!";
+                                                    e.preventDefault();
+                                                } else {
+                                                    if (!validarData(data_nascimento)) {
+                                                        alert.innerHTML = "DATA_NASCIMENTO não esta no formado correto(DD/MM/AAAA, 15/12/2007)!";
+                                                        e.preventDefault();
+                                                    } else {
+                                                        if (sexo == "" || sexo == "-1") {
+                                                            alert.innerHTML = "O campo SEXO é Obrigatório!";
+                                                            e.preventDefault();
+                                                        } else {
+                                                            if (matriculado == "" || matriculado == "-1") {
+                                                                alert.innerHTML = "O campo MATRICULADO é Obrigatório!";
+                                                                e.preventDefault();
+                                                            } else {
+                                                                if (matriculado == 1) {
+                                                                    if (instituicao == "" || instituicao == "-1") {
+                                                                        alert.innerHTML = "O campo INSTITUICAO é Obrigatório!";
+                                                                        e.preventDefault();
+                                                                    } else {
+                                                                        if (curso == "" || curso == "-1") {
+                                                                            alert.innerHTML = "O campo CURSO é Obrigatório!";
+                                                                            e.preventDefault();
+                                                                        } else {
+                                                                            if (periodo == "" || periodo == "-1") {
+                                                                                alert.innerHTML = "O campo PERÍODO é Obrigatório!";
+                                                                                e.preventDefault();
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                } else {
+                                                                    if (tam_camiseta == "" || tam_camiseta == "-1") {
+                                                                        alert.innerHTML = "O campo TAM_CAMISETA é Obrigatório!";
+                                                                        e.preventDefault();
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                document.getElementById("cpfPost").value = cpf;
+                alert.setAttribute("class", "alert show");
+                window.scrollTo(0, 0);
+            };
+
+            document.getElementById("submitLogin").onclick = function (e) {
+                var alert = document.getElementById("alert");
+                alert.setAttribute("class", "alert hidden");
+                var cpf = document.getElementById("cpf").value;
+                var senha = document.getElementById("senhal").value;
+
+                if (cpf == "") {
+                    alert.innerHTML = "O campo CPF é Obrigatório!";
+                    e.preventDefault();
+                } else {
+                    if (!validar(document.getElementById("cpf"))) {
+                        alert.innerHTML = "CPF Invalido!";
+                        e.preventDefault();
+                    } else {
+                        if (senha == "") {
+                            alert.innerHTML = "O campo SENHA é Obrigatório!";
+                            e.preventDefault();
+                        }
+                    }
+                }
+                document.getElementById("cpfPostl").value = cpf;
+                alert.setAttribute("class", "alert show");
+                window.scrollTo(0, 0);
+            };
+
+            document.getElementById("recuperaSenha").onclick = function (e) {
+                if (confirm("Confirme se você realmente desejar resetar sua senha, você recebera um email com a nova senha.")) {
+                    var cpf = document.getElementById("cpf").value;
+                    var xmlhttp;
+                    if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
+                        xmlhttp = new XMLHttpRequest();
+                    } else {// code for IE6, IE5
+                        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+                    }
+                    xmlhttp.onreadystatechange = function () {
+                        if (xmlhttp.readyState == 4)
+                            if (xmlhttp.status == 200) {
+                                window.location = "/portal/inscricoes-locais";
+                            }
+                    }
+                    xmlhttp.open("GET", "/portal/aplication/getSenha.php?cpf=" + cpf, false);
+                    xmlhttp.send();
+                }
+                e.preventDefault();
+            };
+
+            document.getElementById("cpf").onkeydown = function (e) {
+                if (!soNums(e)) {
+                    e.preventDefault();
+                }
+            }
+            document.getElementById("telefone").onkeydown = function (e) {
+                if (!soNums(e)) {
+                    e.preventDefault();
+                }
+            }
+            document.getElementById("rg").onkeydown = function (e) {
+                if (!soNums(e)) {
+                    e.preventDefault();
+                }
+            }
+            document.getElementById("cep").onkeydown = function (e) {
+                if (!soNums(e)) {
+                    e.preventDefault();
+                }
+            }
+
+            document.getElementById("matriculado").onchange = function (e) {
+                var div = document.getElementById("academica");
+                if (document.getElementById("matriculado").value == 1) {
+                    div.setAttribute("class", "show");
+                } else {
+                    div.setAttribute("class", "hidden");
+                }
+            }
+
+            document.getElementById("cpf").onchange = function (e) {
+                var alert = document.getElementById("alert");
+                alert.setAttribute("class", "alert hidden");
+                if (!validar(this)) {
+                    alert.innerHTML = "CPF Invalido!, verifique se contém apenas numeros.";
+                    alert.setAttribute("class", "alert show");
+                    var cadastro = document.getElementById("cadastro");
+                    var login = document.getElementById("login");
+                    var status = document.getElementById("status");
+                    login.setAttribute("class", "hidden");
+                    status.setAttribute("class", "hidden");
+                    cadastro.setAttribute("class", "hidden");
+                    return 0;
+                }
+                var cpf = this.value;
+                //var cpfAndMaratona = {'cpf': this.value, 'id_maratona': id_maratona};
+                var loading = document.getElementById("loading");
+                loading.setAttribute("class", "loading show");
+                var xmlhttp;
+                if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
+                    xmlhttp = new XMLHttpRequest();
+                } else { // code for IE6, IE5
+                    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+                }
+                xmlhttp.onreadystatechange = function () {
+                    if (xmlhttp.readyState == 4)
+                        if (xmlhttp.status == 200) {
+                            var loading = document.getElementById("loading");
+                            loading.setAttribute("class", "loading hidden");
+                            var usuario = JSON.parse(xmlhttp.responseText);
+                            var cadastro = document.getElementById("cadastro");
+                            var login = document.getElementById("login");
+                            var status = document.getElementById("status");
+
+                            if (typeof(usuario[0]) == 'object') {
+                                if (typeof(usuario[0].status) != 'undefined') {
+                                    var str = '<br>' + usuario[0].nome + '<br>' + usuario[0].email + '<br>Status: ' + usuario[0].status + '<br><br>';
+                                    if (usuario[0].status == 'AGUARDANDO PAGAMENTO') {
+                                        status.innerHTML = str + 'Para que sua participação seja confirmada, pague com antecedência.<br>Pague sua inscrição aqui pelo <a target="_blank" href="https://pagseguro.uol.com.br/checkout/v2/payment.html?code=98BBFFC80303F81EE4183FABB0301444">PagSeguro</a>';
+                                    }
+                                    if (usuario[0].status == 'PAGAMENTO CONFIRMADO' || usuario[0].status == 'PAGAMENTO ALGAR' || usuario[0].status == 'TESTE') {
+                                        status.innerHTML = str + 'Parabéns seu pagamento já foi confirmado.<br> Aguardamos você dia 06 de Maio às 8:00h na UNITRI';
+                                    }
+                                    if (usuario[0].status == 'LISTA DE ESPERA') {
+                                        status.innerHTML = str + 'Você ficou na <strong>Lista de Espera</strong>.<br>Por favor, aguarde a possibilidade de chamada.';
+                                    }
+                                    cadastro.setAttribute("class", "hidden");
+                                    login.setAttribute("class", "hidden");
+                                    status.setAttribute("class", "show");
+                                } else {
+                                    if (usuario[0].sexo == 0) {
+                                        usuario[0].sexo = "FEMININO";
+                                    } else {
+                                        usuario[0].sexo = "MASCULINO";
+                                    }
+                                    if (usuario[0].matriculado == 0) {
+                                        usuario[0].matriculado = "N";
+                                    } else {
+                                        usuario[0].matriculado = "S";
+                                    }
+                                    if (usuario[0].tam_camiseta == 1) {
+                                        usuario[0].tam_camiseta = "P";
+                                    }
+                                    if (usuario[0].tam_camiseta == 2) {
+                                        usuario[0].tam_camiseta = "M";
+                                    }
+                                    if (usuario[0].tam_camiseta == 3) {
+                                        usuario[0].tam_camiseta = "G";
+                                    }
+                                    if (usuario[0].tam_camiseta == 4) {
+                                        usuario[0].tam_camiseta = "GG";
+                                    }
+                                    if (usuario[0].tam_camiseta == 5) {
+                                        usuario[0].tam_camiseta = "XG";
+                                    }
+                                    var str = "<strong>Nome:</strong> " + usuario[0].nome +
+                                        "<br><strong>Email:</strong> " + usuario[0].email +
+                                        "<br><strong>Data de Nascimento:</strong> " + usuario[0].data_nascimento +
+                                        "<br><strong>Sexo:</strong> " + usuario[0].sexo +
+                                        "<br><strong>Telefone:</strong> " + usuario[0].telefone +
+                                        "<br><strong>RG:</strong> " + usuario[0].rg +
+                                        "<br><strong>CEP:</strong> " + usuario[0].cep +
+                                        "<br><strong>Cidade:</strong> " + usuario[0].cidade +
+                                        "<br><strong>Estado:</strong> " + usuario[0].estado +
+                                        "<br><strong>Bairro:</strong> " + usuario[0].bairro +
+                                        "<br><strong>Endereço:</strong> " + usuario[0].endereco +
+                                        "<br><strong>Matriculado:</strong> " + usuario[0].matriculado;
+                                    if (usuario[0].matriculado === 'S') {
+                                        str += "<br><strong>Instituicao:</strong> " + usuario[0].instituicao +
+                                            "<br><strong>Curso:</strong> " + usuario[0].curso +
+                                            "<br><strong>Periodo:</strong> " + usuario[0].periodo + "º";
+                                    }
+                                    str += "<br><strong>Tamanho de Camiseta:</strong> " + usuario[0].tam_camiseta + "<br>";
+                                    document.getElementById("dados-usuario").innerHTML = str;
+                                    cadastro.setAttribute("class", "hidden");
+                                    status.setAttribute("class", "hidden");
+                                    login.setAttribute("class", "show");
+                                }
+                            }
+                        }
+                        else if(xmlhttp.status == 204){
+                            var cadastro = document.getElementById("cadastro");
+                            var login = document.getElementById("login");
+                            var status = document.getElementById("status");
+
+                            login.setAttribute("class", "hidden");
+                            status.setAttribute("class", "hidden");
+                            cadastro.setAttribute("class", "show");
+                        }
+                }
+                /* CHANGE
+                xmlhttp.open("GET", "/portal/aplication/getMaratonista.php?cpfAndMaratona=" + JSON.stringify(cpfAndMaratona));
+                */
+                xmlhttp.open("GET", "/api/users/" + cpf, false);
+                xmlhttp.setRequestHeader('Content-Type', 'application/json');
+                xmlhttp.send();
+            };
+
+            function soNums(e) {
+                var evt = e.keyCode;
+                if (evt > 47) {
+                    if (evt < 58) {
+                        return true;
+                    }
+                }
+                if (evt > 95) {
+                    if (evt < 106) {
+                        return true;
+                    }
+                }
+                if (evt < 20) {
+                    return true;
+                }
+                return false;
+            };
+
+            function validarData(str) {
+                if (str.search(/\d\d\/\d\d\/\d\d\d\d/) >= 0) {
+                    return true;
+                }
+                return false;
+            };
+
+            /*
+            function validarSenha(cpf, senha){
+              var xmlhttp;
+                if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
+                       xmlhttp=new XMLHttpRequest();
+                }else {// code for IE6, IE5
+                       xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+                }
+
+                xmlhttp.onreadystatechange=function() {
+                   if (xmlhttp.readyState==4)
+                   if(xmlhttp.status==200) {
+                        var usuario = JSON.parse( xmlhttp.responseText );
+                   if(typeof(usuario[0]) == 'object'){
+                                      return true;
+                                 }
+                                 else{
+                                      return false;
+                                 }
+                    }
+                }
+                xmlhttp.open("GET", "/portal/aplication/login.php?cpf="+cpf+"&senha="+senha, false);
+                xmlhttp.send();
+            }*/
+
+            function validarEmail(email) {
+                var exclude = /[^@\-\.\w]|^[_@\.\-]|[\._\-]{2}|[@\.]{2}|(@)[^@]*\1/;
+                var check = /@[\w\-]+\./;
+                var checkend = /\.[a-zA-Z]{2,3}$/;
+                if (((email.search(exclude) != -1) || (email.search(check)) == -1) || (email.search(checkend) == -1)) {
+                    return false;
+                }
+                return true;
+            };
+
+            function validar(obj) { // recebe um objeto
+                var tam = (obj.value).length; // removendo os caracteres não numéricos
+                if (!(tam == 11)) { // validando o tamanho
+                    return false;
+                }
+                if (tam == 11) {
+                    if (!validaCPF(obj.value)) { // chama a função que valida o CPF
+                        return false;
+                    }
+                    return true;
+                }
+            };
+
+            function validaCPF(s) {
+                var c = s.substr(0, 9);
+                var dv = s.substr(9, 2);
+                var d1 = 0;
+                for (var i = 0; i < 9; i++) {
+                    d1 += c.charAt(i) * (10 - i);
+                }
+                if (d1 == 0) return false;
+                d1 = 11 - (d1 % 11);
+                if (d1 > 9) d1 = 0;
+                if (dv.charAt(0) != d1) {
+                    return false;
+                }
+                d1 *= 2;
+                for (var i = 0; i < 9; i++) {
+                    d1 += c.charAt(i) * (11 - i);
+                }
+                d1 = 11 - (d1 % 11);
+                if (d1 > 9) d1 = 0;
+                if (dv.charAt(1) != d1) {
+                    return false;
+                }
+                return true;
+            };
+        }
+        ;
+
+        function getParameterByName(name) {
+            name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+            var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+                results = regex.exec(location.search);
+            return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+        };
+
+        var error = getParameterByName('error');
+        if (error != "") {
+            var alert = document.getElementById("alert");
+            alert.innerHTML = error;
+            alert.setAttribute("class", "alert show");
+        }
+        ;
+        document.getElementById("maratonaName").innerHTML = maratona;
+    });
+
+</script>
+
+<style>
+    select {
+        padding: 5px;
+        border-color: #ccc #efefef #efefef #ccc;
+        border-width: 1px;
+        border-style: solid;
+        margin-bottom: 10px;
+    }
+
+    label {
+        margin-top: 1px;
+        display: inline-block;
+        width: 40%;
+    }
+
+    input {
+        display: inline-block;
+        width: 40%;
+    }
+
+    select {
+        display: inline-block;
+        width: 42%;
+    }
+
+    .submit {
+        background-color: #47bfea;
+        font-size: 18pt;
+        margin-top: 15px;
+        cursor: pointer;
+    }
+
+    form input, select, label {
+        float: left;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .show {
+        display: block;
+    }
+
+    .alert {
+        padding: 5px;
+        background-color: rgba(255, 0, 0, 0.5);
+        font-size: 18pt;
+    }
+
+    .link {
+        color: #47bfea !important;
+    }
+
+    #dados-usuario {
+        border: 1px solid;
+        border-color: #dbdbdb;
+        margin-bottom: 5px;
+    }
+</style>
+
+<h4>INSCRIÇÃO <span name="maratonaName" id="maratonaName"></span></h4>
+<h5>Ajuda e informações: maratona@algartelecom.com.br</h5>
+
+<div class="hidden" id="aguardando">
+    <h5>Aguarde. Em breve as inscrições estarão abertas.</h5>
+</div>
+
+<div class="hidden" id="encerrada">
+    <h5><strong>INSCRIÇÕES ENCERRADAS</strong>, verifique abaixo o status de sua inscrição.</h5><br>
+    <label>CPF*:</label><input type="text" id="cpfencerrada"><br>
+    <div id="status-encerrada" class="hidden"></div>
+</div>
+
+<div class="hidden" id="aberta">
+    <h5>Para facilitar sua participação nas próximas edições, por favor, realize um rápido cadastro:</h5>
+    <div class="alert hidden" id="alert"></div>
+    <br>
+    <span id="loading" class="loading hidden">Buscando Usuário...</span>
+    <label>CPF*:</label><input type="text" id="cpf"><br>
+    <div class="hidden" id="status"></div>
+
+    <div class="hidden" id="login">
+        <span>Vimos que você já esta cadastrado, por favor confirme seus dados e digite sua senha para se inscrever na Maratona de Programação:</span><br><br>
+        <form action="/portal/aplication/inscricao-usuario.php" method="POST">
+            <input type="hidden" name="id_maratona" value="4">
+            <input type="hidden" name="cpf" id="cpfPostl">
+            <div id="dados-usuario"></div>
+            Caso os dados estejam incorretos <a href="atualizacao-cadastro?id=??">clique aqui</a>.<br><br>
+            <label>SENHA*:</label><input type="password" name="senha" id="senhal">
+            <br><br>Esqueceu a senha? <a href="" id="recuperaSenha">clique aqui</a>.<br><br>
+            <input type="submit" value="Confirmar e Inscrever" id="submitLogin" class="submit">
+        </form>
+    </div>
+    <div class="hidden" id="cadastro">
+        <span>Vimos que você ainda não está cadastrado, por favor preencha os campos abaixo para se cadastrar e se inscrever na Maratona de Programação:</span><br><br>
+        <form action="/portal/aplication/inscricao.php" method="POST">
+            <input type="hidden" name="cpf" id="cpfPost">
+            <input type="hidden" name="id_maratona" value="4">
+            <label>SENHA*:</label><input type="password" name="senha" id="senha"><br>
+            <label>REDIGITE A SENHA*:</label><input type="password" name="resenha" id="resenha"><br>
+            <label>EMAIL*:</label><input type="text" name="email" id="email"><br>
+            <label>RG*:</label><input type="text" name="rg" id="rg"><br>
+            <label>NOME COMPLETO*:</label><input type="text" name="nome" id="nome"><br>
+            <label>TELEFONE:</label><input type="text" name="telefone" id="telefone"><br>
+            <label>DATA DE NASCIMENTO*:</label><input type="text" name="data_nascimento" id="data_nascimento"><br>
+            <label>SEXO*:</label><select name="sexo" id="sexo">
+                <option value="-1">Escolha seu Sexo</option>
+                <option value="0">FEMININO</option>
+                <option value="1">MASCULINO</option>
+            </select><br>
+            <label>CEP:</label><input type="text" name="cep" id="cep"><br>
+            <label>CIDADE:</label><input type="text" name="cidade" id="cidade"><br>
+            <label>ESTADO:</label><input type="text" name="estado" id="estado"><br>
+            <label>BAIRRO:</label><input type="text" name="bairro" id="bairro"><br>
+            <label>ENDEREÇO:</label><input type="text" name="endereco" id="endereco"><br>
+            <label>MATRICULADO*:</label><select name="matriculado" id="matriculado">
+                <option value="-1">Está Matriculado</option>
+                <option value="1">S</option>
+                <option value="0">N</option>
+            </select><br>
+            <div id="academica" class="hidden">
+                <label>INSTITUICAO*:</label><select id="instituicao" name="instituicao">
+                    <option value="-1">Selecione sua Instituição</option>
+                </select><br>
+                <label>CURSO*:</label><select id="curso" name="curso">
+                    <option value="-1">Selecione sua Instituição</option>
+                </select><br>
+                <label>PERÍODO*:</label><select name="periodo" id="periodo">
+                    <option value="-1">Qual Período</option>
+                    <option value="1">1º</option>
+                    <option value="2">2º</option>
+                    <option value="3">3º</option>
+                    <option value="4">4º</option>
+                    <option value="5">5º</option>
+                    <option value="6">6º</option>
+                    <option value="7">7º</option>
+                    <option value="8">8º</option>
+                    <option value="9">9º</option>
+                    <option value="10">10º</option>
+                    <option value="11">11º</option>
+                    <option value="12">12º</option>
+                </select>
+            </div>
+            <br>
+            <label>TAMANHO CAMISETA*:</label><select name="tam_camiseta" id="tam_camiseta">
+                <option value="-1">Qual seu Tamanho de Camiseta</option>
+                <option value="1">P</option>
+                <option value="2">M</option>
+                <option value="3">G</option>
+                <option value="4">GG</option>
+                <option value="4">XG</option>
+            </select><br>
+            <input type="submit" value="Cadastrar e Inscrever" id="submit" class="submit">
+        </form>
+    </div>
+</div>
