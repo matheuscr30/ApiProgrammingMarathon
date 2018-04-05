@@ -1,0 +1,71 @@
+
+  Página a ser alterada: maratona.algartelecom.com.br/portal/inscricoes-locais/
+  abaixo requisições feitas pelo javascript da página e exemplo da resposta recebida.
+  O arquivo form.html é o código alteravel da página, ou seja, todas as modificações devem ser feitas baseadas neste código
+  
+
+  getByCPF(code):  var cpfAndMaratona = { 'cpf' : this.value, 'id_maratona' : id_maratona };
+                   http://maratona.algartelecom.com.br/portal/aplication/getMaratonista.php?cpfAndMaratona="+JSON.stringify(cpfAndMaratona)
+        Response:
+        [
+          {
+              "0": "338",               ---> id
+              "1": "Nome Completo",     ---> nome
+              "2": "email@email.com",   ---> email
+              "3": "9999-01-01",        ---> data de Nascimento
+              "4": "1",                 ---> sexo
+              "5": "34999999999",       ---> telefone
+              "6": "99999999",          ---> RG
+              "7": "38440260",          ---> CEP
+              "8": "abcdsssa",          ---> cidade
+              "9": "daasd",             ---> estado
+              "10": "sas",              ---> bairro
+              "11": "dwdqw",            ---> endereco
+              "12": "UFU",              ---> instituicao
+              "13": "COMPUTAÇÃO",       ---> curso
+              "14": "1",                ---> matriculado
+              "15": "2",                ---> periodo
+              "16": "2",                ---> tam_camiseta
+              "id": "338",
+              "nome": "",
+              "email": "gmail.com",
+              "data_nascimento": "1999-01-01",
+              "sexo": "1",
+              "telefone": "34999999999",
+              "rg": "99999999",
+              "cep": "99999999",
+              "cidade": "dwdwa",
+              "estado": "dwas",
+              "bairro": "daswqfq",
+              "endereco": "wdqwdq",
+              "instituicao": "UFU",
+              "curso": "COMPUTAÇÃO",
+              "matriculado": "1",
+              "periodo": "2",
+              "tam_camiseta": "2"
+          }
+      ]
+
+  getInstituicoes: http://maratona.algartelecom.com.br/portal/aplication/getInstituicoes.php
+        Response:
+        [
+          {
+            "0": "ATENAS",
+            "nome_instituicao": "ATENAS"
+          }
+        ]
+
+  getCursos: http://maratona.algartelecom.com.br/portal/aplication/getCursos.php?nome_instituicao="+nome_instituicao
+      Response:
+        [
+          {
+              "0": "275",
+              "1": "ANÁLISE DE SISTEMAS",
+              "id": "275",
+              "curso": "ANÁLISE DE SISTEMAS"
+          }
+        ]
+
+  resetPassword: http://maratona.algartelecom.com.br/portal/aplication/getSenha.php?cpf="+cpf
+      Response:
+          200 OK, reseta a senha por uma gerada aleatoriamente e envia por email.

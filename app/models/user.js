@@ -17,12 +17,13 @@ var userSchema = new Schema({
     endereco: {type: String, required: true},
     instituicao: {type: String, required: true},
     curso: {type: String, required: true},
-    matriculado: {type: Number},
+    matriculado: {type: Boolean},
     periodo: {type: Number},
     tam_camiseta: {type: String, required: true}, // NO form.html ta Number
     status: {
         type: String,
-        enum: ['AGUARDANDO PAGAMENTO', 'PAGAMENTO CONFIRMADO', 'LISTA DE ESPERA']
+        enum: ['AGUARDANDO PAGAMENTO', 'PAGAMENTO CONFIRMADO', 'LISTA DE ESPERA'],
+
     }
 });
 var User = mongoose.model("User", userSchema);
