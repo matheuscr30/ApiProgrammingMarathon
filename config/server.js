@@ -58,6 +58,7 @@ app.locals.sendEmail = function (subject, destinatary, data, attachments = []) {
         attachments: attachments
     };
 
+    //Rede da Algar esta bloqueando
     transporter.sendMail(mailOptions, function (err, res) {
         if(err){
             console.log(err);

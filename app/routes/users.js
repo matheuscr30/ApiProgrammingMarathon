@@ -1,7 +1,7 @@
 module.exports = function (application) {
-    application.get('/teste', function (req, res) {
+    /*application.get('/teste', function (req, res) {
         res.render('form');
-    });
+    });*/
 
     application.get('/api/users', function (req, res) {
         application.app.controllers.users.get(application, req, res);
@@ -17,9 +17,5 @@ module.exports = function (application) {
 
     application.put('/api/users', function (req, res) {
         application.app.controllers.users.put(application, req, res);
-    });
-
-    application.get('/testEmail', function (req, res) {
-
     });
 };

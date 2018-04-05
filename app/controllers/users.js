@@ -1,3 +1,4 @@
+const Marathon = require("../models/marathon");
 const User = require("../models/user");
 const path = require('path');
 const ejs = require('ejs');
@@ -36,6 +37,7 @@ module.exports.post = function (application, req, res) {
     req.checkBody('nome', 'O campo Nome é obrigatório').notEmpty();
     req.checkBody('email', 'O campo Email é obrigatório').notEmpty();
     req.checkBody('email', 'Email Inválido').isEmail();
+    req.checkBody('senha', 'O campo Senha é obrigatório').notEmpty();
     req.checkBody('data_nascimento', "O campo Data de Nascimento é obrigatório").notEmpty();
     req.checkBody('sexo', 'O campo Sexo é obrigatório').notEmpty();
     req.checkBody('telefone', 'O campo Telefone é obrigatório').notEmpty();
@@ -57,12 +59,14 @@ module.exports.post = function (application, req, res) {
         for (let i = 0; i < errors.length; i++) {
             errorsVector.push(errors[i].msg);
         }
-        return res.status(503).json({errors: errorsVector});
+        //console.log(errorsVector);
+        return res.status(205).json({errors: errorsVector});
     }
 
     let user = new User({
         nome: body['nome'],
         email: body['email'],
+        senha: body['senha'],
         data_nascimento: body['data_nascimento'],
         sexo: body['sexo'],
         telefone: body['telefone'],
@@ -81,44 +85,67 @@ module.exports.post = function (application, req, res) {
         status: body['status']
     });
 
-    user.save(function (err, result) {
-        if (err) {
-            //console.log(err);
-            if (err.name == "ValidationError")
-                res.status(500).json({errors : err.errors});
-            else if (err.code === 11000)
-                res.status(409).json({message: "User already exists"});
-        } else {
-            //console.log(result);
-            res.status(200).json(result);
+    let atualMarathon;
+    Marathon.find({"nome" : "18ª MARATONA DE PROGRAMAÇÃO"}, (err, marathon) => {
+        if(err) console.log(err);
 
-            let filePath = path.join(path.dirname(__dirname), 'views/');
-            let imagesPath = path.join(path.dirname(__dirname), 'public/', 'images/');
+        atualMarathon = marathon[0];
+        //console.log(marathon[0]);
 
-            ejs.renderFile(filePath + 'confirmationEmail.ejs', {}, (err, data) => {
-                if (err) console.log(err);
-                else {
-                    let attachments = [
-                        {
-                            filename: '18a.png',
-                            path: imagesPath + '18a.png',
-                            cid: '18a.png'
-                        },
-                        {
-                            filename: 'letter.png',
-                            path: imagesPath + 'letter.png',
-                            cid: 'letter.png'
-                        }
-                    ];
+        if(atualMarathon['vagas_preenchidas'] + 1 <= atualMarathon['vagas']){
+            Marathon.findByIdAndUpdate(atualMarathon['_id'], {$inc: {vagas_preenchidas:1}}, (err, result) => {
+                if(err) console.log(err);
 
-                    application.locals.sendEmail("Inscrição Maratona de Programação", "matheuscunhareis30@gmail.com", data, attachments);
-                }
+                //console.log(result);
             });
+        } else {
+            user.status = "LISTA DE ESPERA";
         }
+
+        user.save(function (err, result) {
+            if (err) {
+                //console.log(err);
+                if (err.name == "ValidationError")
+                    res.status(500).json({errors : err.errors});
+                else if (err.code === 11000)
+                    res.status(209).json({message: "User already exists"});
+            } else {
+                //console.log(result);
+                res.status(200).json(result);
+
+                if(result.status == "LISTA DE ESPERA") return;
+
+                let filePath = path.join(path.dirname(__dirname), 'views/');
+                let imagesPath = path.join(path.dirname(__dirname), 'public/', 'images/');
+
+                if(result.status == "AGUARDANDO PAGAMENTO") {
+                    ejs.renderFile(filePath + 'confirmationEmail.ejs', {}, (err, data) => {
+                        if (err) console.log(err);
+                        else {
+                            let attachments = [
+                                {
+                                    filename: '18a.png',
+                                    path: imagesPath + '18a.png',
+                                    cid: '18a.png'
+                                },
+                                {
+                                    filename: 'letter.png',
+                                    path: imagesPath + 'letter.png',
+                                    cid: 'letter.png'
+                                }
+                            ];
+
+                            application.locals.sendEmail("Inscrição Maratona de Programação", result['email'], data, attachments);
+                        }
+                    });
+                }
+            }
+        });
     });
 };
 
 module.exports.put = function (application, req, res) {
+    /*
     let cpf = req.params.cpf;
     if (cpf === '') return res.status(404).json({message: "The object you are looking for was not found"});
 
@@ -136,4 +163,5 @@ module.exports.put = function (application, req, res) {
         }
         return res.status(503).json({errors: errorsVector});
     }
+    */
 };

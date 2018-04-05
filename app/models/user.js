@@ -5,6 +5,7 @@ var userSchema = new Schema({
     id: {type: Number},
     nome: {type: String, required: true},
     email: {type: String, required: true, unique: true},
+    senha: {type: String, required: true},
     data_nascimento: {type: String, required: true},
     sexo: {type: String, required: true},  // NO form.html ta Number
     telefone: {type: String, required: true},
@@ -23,7 +24,7 @@ var userSchema = new Schema({
     status: {
         type: String,
         enum: ['AGUARDANDO PAGAMENTO', 'PAGAMENTO CONFIRMADO', 'LISTA DE ESPERA'],
-
+        default: "AGUARDANDO PAGAMENTO"
     }
 });
 var User = mongoose.model("User", userSchema);

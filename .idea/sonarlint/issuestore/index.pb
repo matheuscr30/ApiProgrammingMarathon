@@ -32,3 +32,9 @@ A
 package-lock.json,f/a/fa288d1472d29beccb489a676f68739ad365fc47
 O
 app/views/confirmationEmail.ejs,2/2/2253a785a576347353a763853ef38947f02362a3
+L
+app/controllers/marathons.js,f/a/faf612a649ad03b32085041bf9b30b2497f1291e
+G
+app/routes/marathons.js,c/6/c652caa4de24a00808dc59b58b15583a1984ebf1
+F
+app/models/marathon.js,d/2/d25522abf31114d3b08799b32135c5913ebb107b
